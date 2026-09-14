@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useSyncExternalStore } from "react";
 
 type ThemeMode = "light" | "dark" | "auto";
 type ResolvedTheme = "light" | "dark";
@@ -15,71 +15,59 @@ type ThemeContextType = {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
+const themeChangeEvent = "tailadmin-theme-change";
+const darkQuery = "(prefers-color-scheme: dark)";
+
+function getThemeMode(): ThemeMode {
+  const saved = localStorage.getItem("theme-mode") || localStorage.getItem("theme");
+  return saved === "dark" || saved === "auto" ? saved : "light";
+}
+
+function subscribeTheme(onChange: () => void) {
+  window.addEventListener("storage", onChange);
+  window.addEventListener(themeChangeEvent, onChange);
+  return () => {
+    window.removeEventListener("storage", onChange);
+    window.removeEventListener(themeChangeEvent, onChange);
+  };
+}
+
+function subscribeSystemTheme(onChange: () => void) {
+  const query = window.matchMedia(darkQuery);
+  query.addEventListener("change", onChange);
+  return () => query.removeEventListener("change", onChange);
+}
+
+const getServerMode = (): ThemeMode => "light";
+const getSystemDark = () => window.matchMedia(darkQuery).matches;
+const getServerDark = () => false;
+const subscribeHydration = () => () => {};
+const getClientReady = () => true;
+
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [themeMode, setThemeModeState] = useState<ThemeMode>("light");
-  const [theme, setTheme] = useState<ResolvedTheme>("light");
-  const [isInitialized, setIsInitialized] = useState(false);
-
-  useEffect(() => {
-    // This code will only run on the client side
-    const savedMode = localStorage.getItem("theme-mode") as ThemeMode | null;
-    const legacySavedTheme = localStorage.getItem(
-      "theme",
-    ) as ResolvedTheme | null;
-    const initialMode = savedMode || (legacySavedTheme as ThemeMode) || "light";
-
-    setThemeModeState(initialMode);
-    setIsInitialized(true);
-  }, []);
+  // Stable server snapshots keep hydration consistent with the initial HTML.
+  const themeMode = useSyncExternalStore(subscribeTheme, getThemeMode, getServerMode);
+  const systemDark = useSyncExternalStore(subscribeSystemTheme, getSystemDark, getServerDark);
+  const isInitialized = useSyncExternalStore(subscribeHydration, getClientReady, getServerDark);
+  const theme: ResolvedTheme = themeMode === "auto" ? (systemDark ? "dark" : "light") : themeMode;
 
   useEffect(() => {
     if (!isInitialized) return;
-
     localStorage.setItem("theme-mode", themeMode);
-
-    if (themeMode === "auto") {
-      const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-
-      const handleChange = () => {
-        const resolved = mediaQuery.matches ? "dark" : "light";
-        setTheme(resolved);
-      };
-
-      handleChange();
-
-      mediaQuery.addEventListener("change", handleChange);
-      return () => {
-        mediaQuery.removeEventListener("change", handleChange);
-      };
-    } else {
-      setTheme(themeMode as ResolvedTheme);
-    }
-  }, [themeMode, isInitialized]);
-
-  useEffect(() => {
-    if (isInitialized) {
-      localStorage.setItem("theme", theme);
-      if (theme === "dark") {
-        document.documentElement.classList.add("dark");
-        document.documentElement.setAttribute("data-color-scheme", "dark");
-      } else {
-        document.documentElement.classList.remove("dark");
-        document.documentElement.setAttribute("data-color-scheme", "light");
-      }
-    }
-  }, [theme, isInitialized]);
+    localStorage.setItem("theme", theme);
+    document.documentElement.classList.toggle("dark", theme === "dark");
+    document.documentElement.setAttribute("data-color-scheme", theme);
+  }, [theme, themeMode, isInitialized]);
 
   const setThemeMode = (mode: ThemeMode) => {
-    setThemeModeState(mode);
+    localStorage.setItem("theme-mode", mode);
+    window.dispatchEvent(new Event(themeChangeEvent));
   };
 
   const toggleTheme = () => {
-    setThemeModeState((prevMode) => {
-      const currentResolved = theme;
-      return currentResolved === "light" ? "dark" : "light";
-    });
+    setThemeMode(theme === "light" ? "dark" : "light");
   };
 
   return (

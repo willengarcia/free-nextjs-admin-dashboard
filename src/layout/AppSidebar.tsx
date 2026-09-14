@@ -1,107 +1,17 @@
 "use client";
 
 import { Link, usePathname } from "@/i18n/navigation";
+import { navItems, othersItems } from "@/config/navigation";
+import { matchesNavigationPath, type NavItem } from "@/config/navigation-types";
 import { cn } from "@/utils";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useSidebar } from "../context/SidebarContext";
 import {
-  BoxCubeIcon,
-  CalenderIcon,
   ChevronDownIcon,
-  GridIcon,
   HorizontaLDots,
-  ListIcon,
-  PageIcon,
-  PieChartIcon,
-  PlugInIcon,
-  TableIcon,
-  UserCircleIcon,
 } from "../icons/index";
-import SidebarWidget from "./SidebarWidget";
-
-type NavItem = {
-  key: string;
-  icon: React.ReactNode;
-  path?: string;
-  new?: boolean;
-  target?: string;
-  subItems?: {
-    key: string;
-    path: string;
-    pro?: boolean;
-    new?: boolean;
-    target?: string;
-  }[];
-};
-
-const navItems: NavItem[] = [
-  {
-    icon: <GridIcon />,
-    key: "dashboard",
-    subItems: [{ key: "ecommerceHome", path: "/" }],
-  },
-  {
-    icon: <CalenderIcon />,
-    key: "calendar",
-    path: "/calendar",
-  },
-  {
-    icon: <UserCircleIcon />,
-    key: "userProfile",
-    path: "/profile",
-  },
-  {
-    key: "forms",
-    icon: <ListIcon />,
-    subItems: [{ key: "formElements", path: "/form-elements", pro: false }],
-  },
-  {
-    key: "tables",
-    icon: <TableIcon />,
-    subItems: [{ key: "basicTables", path: "/basic-tables", pro: false }],
-  },
-  {
-    key: "pages",
-    icon: <PageIcon />,
-    subItems: [
-      { key: "blankPage", path: "/blank" },
-      { key: "error404", path: "/error-404" },
-    ],
-  },
-];
-
-const othersItems: NavItem[] = [
-  {
-    icon: <PieChartIcon />,
-    key: "charts",
-    subItems: [
-      { key: "lineChart", path: "/line-chart", pro: false },
-      { key: "barChart", path: "/bar-chart", pro: false },
-    ],
-  },
-  {
-    icon: <BoxCubeIcon />,
-    key: "uiElements",
-    subItems: [
-      { key: "alerts", path: "/alerts" },
-      { key: "avatar", path: "/avatars" },
-      { key: "badge", path: "/badge" },
-      { key: "buttons", path: "/buttons" },
-      { key: "images", path: "/images" },
-      { key: "videos", path: "/videos" },
-    ],
-  },
-  {
-    icon: <PlugInIcon />,
-    key: "authentication",
-    subItems: [
-      { key: "signIn", path: "/signin", pro: false },
-      { key: "signUp", path: "/signup", pro: false },
-    ],
-  },
-];
 
 const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
@@ -170,6 +80,7 @@ const AppSidebar: React.FC = () => {
             nav.path && (
               <Link
                 href={nav.path}
+                aria-current={isActive(nav.path) ? "page" : undefined}
                 target={nav.target}
                 className={cn(
                   "group menu-item",
@@ -213,6 +124,7 @@ const AppSidebar: React.FC = () => {
                   <li key={subItem.key}>
                     <Link
                       href={subItem.path}
+                      aria-current={isActive(subItem.path) ? "page" : undefined}
                       target={subItem.target}
                       className={`menu-dropdown-item ${
                         isActive(subItem.path)
@@ -265,35 +177,24 @@ const AppSidebar: React.FC = () => {
   );
   const subMenuRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
-  // const isActive = (path: string) => path === pathname;
+  const isActive = useCallback((path: string) => matchesNavigationPath(pathname, path), [pathname]);
 
-  const isActive = useCallback((path: string) => path === pathname, [pathname]);
-
-  useEffect(() => {
-    // Check if the current path matches any submenu item
-    let submenuMatched = false;
-    ["main", "support", "others"].forEach((menuType) => {
-      const items = menuType === "main" ? navItems : othersItems;
-      items.forEach((nav, index) => {
-        if (nav.subItems) {
-          nav.subItems.forEach((subItem) => {
-            if (isActive(subItem.path)) {
-              setOpenSubmenu({
-                type: menuType as "main" | "support" | "others",
-                index,
-              });
-              submenuMatched = true;
-            }
-          });
-        }
-      });
-    });
-
-    // If no submenu item matches, close the open submenu
-    if (!submenuMatched) {
-      setOpenSubmenu(null);
+  const [previousPathname, setPreviousPathname] = useState<string | null>(null);
+  // Select the matching group on navigation, while allowing manual toggles.
+  if (previousPathname !== pathname) {
+    setPreviousPathname(pathname);
+    let matched: typeof openSubmenu = null;
+    for (const [type, items] of [
+      ["main", navItems],
+      ["others", othersItems],
+    ] as const) {
+      const index = items.findIndex((nav) =>
+        nav.subItems?.some((item) => matchesNavigationPath(pathname, item.path)),
+      );
+      if (index !== -1) matched = { type, index };
     }
-  }, [pathname, isActive]);
+    setOpenSubmenu(matched);
+  }
 
   useEffect(() => {
     // Set the height of the submenu items when the submenu is opened
@@ -413,7 +314,6 @@ const AppSidebar: React.FC = () => {
             </div>
           </div>
         </nav>
-        {isExpanded || isHovered || isMobileOpen ? <SidebarWidget /> : null}
       </div>
     </aside>
   );

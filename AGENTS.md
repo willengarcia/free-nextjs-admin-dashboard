@@ -1,6 +1,6 @@
-# AGENTS.md — TailAdmin Pro
+# AGENTS.md — TailAdmin Free
 
-> Next.js admin dashboard template · Tailwind CSS v4 · next-intl · ApexCharts · FullCalendar · Swiper
+> Next.js Free admin dashboard template · Tailwind CSS v4 · next-intl · ApexCharts · FullCalendar
 
 ## Repo Map
 
@@ -13,21 +13,24 @@ src/
 ├── app/                      # routes (Next.js App Router)
 │   ├── [locale]/             # localized routes (next-intl)
 │   │   ├── (admin)/          # dashboard shell (sidebar+header via src/layout)
-│   │   │   ├── (home)/       # dashboard variants, e.g. analytics/, crm/, sales/
-│   │   │   ├── (others-pages)/ # feature pages, e.g. calendar/, chat/, (forms)/
-│   │   │   └── (ui-elements)/ # component demo pages (alerts, buttons, modals…)
-│   │   ├── (full-width-pages)/ # no dashboard shell, e.g. (auth)/, coming-soon/
-│   │   ├── (layouts-example)/ # sidebar layout variants (layout-one … six)
+│   │   │   ├── page.tsx      # portal overview
+│   │   │   ├── ecommerce/    # presentation placeholders only
+│   │   │   ├── administration/ # presentation placeholders only
+│   │   │   ├── reports/      # presentation placeholder only
+│   │   │   └── (others-pages)/ # retained profile/ page
+│   │   ├── (full-width-pages)/ # no dashboard shell: (auth)/
 │   │   └── layout.tsx, not-found.tsx
 │   ├── favicon.ico, globals.css
 ├── components/
-│   ├── ui/                    # primitives: button, modal, table, tabs…
+│   ├── ui/                    # primitives: button, modal, table, badge, alert, dropdown…
 │   ├── form/                  # Form, Label, Select + input/, switch/
 │   ├── common/                # shared widgets: PageBreadCrumb, ThemeToggleButton…
 │   ├── header/                # header dropdowns
-│   └── <feature>/             # one folder per domain: ecommerce, crm, invoice…
+│   └── <feature>/             # existing examples: ecommerce, calendar, charts, user-profile…
+├── config/                  # shared navigation types and portal composition
+├── modules/                 # ecommerce/ and administration/ navigation manifests
 ├── i18n/                     # routing.ts, request.ts, navigation.ts, languages.ts
-├── messages/                 # translation dictionaries (en.json, ar.json, es.json, de.json)
+├── messages/                 # current translation dictionary: en.json
 ├── layout/                    # admin shell: AppSidebar, AppHeader
 ├── context/                   # SidebarContext, ThemeContext
 ├── hooks/                     # useModal, useGoBack, useClickOutside
@@ -36,10 +39,22 @@ src/
 └── utils/
 ```
 
+## Current scope
+
+- Stage 3 adds a neutral portal overview and explicit presentation routes. Module manifests define navigation only, never API permissions or business contracts. Shared primitives must not import domain modules; `config/navigation.tsx` composes module manifests. Add domain UI under its module as the corresponding stage is approved.
+- API clients and session/permission enforcement are not implemented. Menu visibility does not authorize access; Stage 4 requires approval of the session strategy.
+
+- Demo routes for calendar, blank, forms, tables, charts, UI elements, and `/error-404` were removed. Their reusable components remain in `src/components`; the real `not-found.tsx` is retained.
+
+- This repository is derived from TailAdmin Free. Preserve `LICENSE` and applicable original notices. Do not introduce Pro components.
+- Authentication, profile actions, dashboard metrics, and tables are demonstrations. There is no backend API integration or session protection yet.
+- The intended product is a modular administrative portal, initially for ecommerce. Business rules and API contracts belong to the backend.
+- Proceed through user-approved stages; do not implement authentication, API contracts, or future modules as part of template cleanup.
+
 ## Stack
 
 - **Next.js 16** (App Router, Turbopack + webpack both configured) with **React 19** and strict **TypeScript**.
-- **next-intl v4** for internationalization (i18n), localized routing, and RTL support.
+- **next-intl v4** for internationalization (i18n). Only English is enabled; direction helpers and RTL styles are available for future locales.
 - Path alias: `@/*` → `src/*`.
 - Scripts: `npm run dev`, `npm run build`, `npm run lint`. Node >= 20.9.
 - This Next.js version may differ from your training data — read the relevant guide in `node_modules/next/dist/docs/` before writing code and heed deprecation notices.
@@ -49,7 +64,7 @@ src/
 - **New page** → add a folder under the matching `src/app/[locale]/(...)/` group; colocate route-only components there. Never place pages outside `[locale]`.
 - **New reusable component** → `components/<feature>/` if domain-specific, else `components/common/` or `components/ui/`.
 - **New icon** → drop the `.svg` in `icons/`, export it from the `index.tsx` barrel with a PascalCase name. Never inline SVG markup in components.
-- Route groups: `(admin)` is the only group with the sidebar/header shell; `(full-width-pages)` renders pages without chrome; `(layouts-example)` holds alternative sidebar layouts.
+- Route groups: `(admin)` is the only group with the sidebar/header shell; `(full-width-pages)` renders pages without chrome. No alternative layout route group exists in this Free copy.
 - Component files are **PascalCase** (`MonthlySalesChart.tsx`) with a **default export**; route files stay lowercase (`page.tsx`, `layout.tsx`); hooks are camelCase (`useModal.ts`).
 - Root `app/[locale]/layout.tsx` is a Server Component setting up `NextIntlClientProvider`, fonts, direction (`dir="ltr"|"rtl"`), and providers. The `(admin)` shell layout and interactive UI are Client Components — add `"use client"` whenever using hooks, event handlers, or browser APIs.
 - Import via the alias (`@/context/...`, `@/icons/...`, `@/i18n/...`) for cross-folder imports; relative imports are fine within a feature folder.
@@ -57,14 +72,14 @@ src/
 ## Internationalization (next-intl) rules
 
 - **Navigation & Routing**: Always import navigation primitives (`Link`, `useRouter`, `usePathname`, `redirect`) from `@/i18n/navigation`, never directly from `next/link` or `next/navigation`.
-- **Routing Configuration**: Locales (`en`, `ar`, `es`, `de`) and routing settings are centralized in `src/i18n/routing.ts` (`localePrefix: "never"`).
+- **Routing Configuration**: The enabled locale (`en`) and routing settings are centralized in `src/i18n/routing.ts` (`localePrefix: "never"`).
 - **Translations**:
   - In Client Components: use `useTranslations("namespace")`.
   - In Server Components: use `getTranslations("namespace")` from `next-intl/server`.
   - Organize translation keys by nested feature namespaces (e.g. `t("customers")` under `ecommerce.metrics`).
 - **Translation Messages**: All translation dictionaries live in `src/messages/<locale>.json`. When adding or updating user-facing copy, maintain corresponding keys across all supported language files.
 - **Static Rendering & Server Components**: Server layouts/pages inside `[locale]` must call `setRequestLocale(locale)` to enable static rendering with `generateStaticParams()`.
-- **RTL Support**: Arabic (`ar`) uses RTL direction (`dir="rtl"`) via `isRtl(locale)` in `src/i18n/languages.ts`. Ensure UI components handle RTL layouts gracefully using CSS logical properties and `rtl:` variants.
+- **RTL Support**: `isRtl(locale)` in `src/i18n/languages.ts` provides direction handling. Arabic is a commented example, not an enabled locale or an available dictionary. Ensure UI components handle RTL layouts gracefully using CSS logical properties and `rtl:` variants.
 
 ## Styling rules
 
@@ -99,7 +114,8 @@ src/
 - Prefer primitives from `src/components/ui/` and `src/components/form/` over raw HTML or new third-party equivalents.
 - Wrap demo/page sections in `ComponentCard` and add `PageBreadCrumb` at the top of pages, matching existing pages.
 - **Charts**: `react-apexcharts` must be dynamically imported — `const ReactApexChart = dynamic(() => import("react-apexcharts"), { ssr: false })`.
-- **Calendar & carousels**: `FullCalendar` and `Swiper` are also client-only libraries — dynamically import them the same way (`dynamic(() => import(...), { ssr: false })`) rather than importing directly, unless they're already isolated inside a component that's rendered client-side only (verify before assuming).- **Icons**: import from `@/icons` (SVGs are compiled to React components via `@svgr/webpack`, configured for both webpack and Turbopack).
+- **Calendar & carousels**: `FullCalendar` and `Swiper` are also client-only libraries — dynamically import them the same way (`dynamic(() => import(...), { ssr: false })`) rather than importing directly, unless they're already isolated inside a component that's rendered client-side only (verify before assuming).
+- **Icons**: import from `@/icons` (SVGs are compiled to React components via `@svgr/webpack`, configured for both webpack and Turbopack).
 - Modals use the `useModal` hook (`isOpen`, `openModal`, `closeModal`, `toggleModal`).
 - Global state goes through the existing contexts (`useSidebar`, `useTheme`) — don't add new providers without need.
 

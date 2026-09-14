@@ -8,6 +8,27 @@ With TailAdmin Next.js, you get access to all the necessary dashboard UI compone
 
 TailAdmin utilizes the powerful features of **Next.js 16** and common features of Next.js such as server-side rendering (SSR), static site generation (SSG), and seamless API route integration. Combined with the advancements of **React 19** and the robustness of **TypeScript**, TailAdmin is the perfect solution to help get your project up and running quickly.
 
+## Current repository scope
+
+This TailAdmin Free copy is the presentation base for a modular administrative portal, initially for ecommerce. The existing layout, components, theme, and MIT notices are retained. Backend business rules remain in the Java/Spring Boot API.
+
+The current routes contain a neutral portal overview, profile, visual sign-in/sign-up pages, and presentation placeholders for ecommerce resources, administration, and reports. The original ecommerce widgets remain available but no longer provide fictitious dashboard metrics on the home page. Calendar, blank, form/table/chart/UI demonstration routes and the `/error-404` demo were removed during minimal cleanup. Their reusable components and the actual `not-found.tsx` remain available. Authentication, profile actions, and business data are not connected to a backend. No session protection or administrative permissions are implemented.
+
+Routes use the Next.js App Router under `src/app/[locale]`, with `(admin)` for the sidebar/header shell and `(full-width-pages)` for authentication examples. Only English (`src/messages/en.json`) is enabled, with no locale prefix in URLs. There are no CRM, finance, chat, or alternative-layout pages in this copy.
+
+Shared UI lives in `src/components`, layout in `src/layout`, providers in `src/context`, and internationalization in `src/i18n`. Navigation manifests live in `src/modules/ecommerce` and `src/modules/administration`; `src/config/navigation.tsx` composes them into the portal menu. Resource pages are presentation placeholders only. No API layer, authentication, or business operations have been implemented.
+
+### Local validation
+
+Use the existing lockfile when installing dependencies (`npm ci`). Available checks are `npm run lint`, `npx tsc --noEmit --incremental false`, and `npm run build`. There is no dedicated typecheck script or test suite.
+
+## Stage 3 boundaries
+
+- Explicit ecommerce routes: `/ecommerce/products`, `/ecommerce/categories`, `/ecommerce/orders`, `/ecommerce/customers`, `/ecommerce/payments`.
+- Explicit administration routes: `/administration/users`, `/administration/permissions`, `/administration/settings`; reports: `/reports`.
+- The menu is presentation only. Backend authorization remains mandatory; permission identifiers and session strategy await confirmed contracts and approval.
+- No billing, finance, or other future modules are created. No dependencies or backend contracts are added.
+
 ## Overview
 
 TailAdmin provides essential UI components and layouts for building feature-rich, data-driven admin dashboards and control panels. It's built on:
@@ -76,19 +97,21 @@ git clone https://github.com/TailAdmin/free-nextjs-admin-dashboard.git
 
 ## Components
 
-TailAdmin is a pre-designed starting point for building a web-based dashboard using Next.js and Tailwind CSS. The template includes:
+TailAdmin is a pre-designed starting point for building a web-based dashboard using Next.js and Tailwind CSS. The retained component library includes (standalone demo routes have been removed):
 
-- Sophisticated and accessible sidebar
+- Collapsible sidebar and responsive header
 - Data visualization components
-- Profile management and custom 404 page
+- Demo profile interface and custom 404 page
 - Tables and Charts(Line and Bar)
-- Authentication forms and input elements
+- Visual authentication forms and input elements (no authentication service)
 - Alerts, Dropdowns, Modals, Buttons and more
 - Can't forget Dark Mode 🕶️
 
 All components are built with React and styled using Tailwind CSS for easy customization.
 
-## Feature Comparison
+## Upstream feature comparison
+
+The following is upstream promotional information, not an inventory of this repository. Pro features are not included in this Free copy.
 
 ### Free Version
 
@@ -107,7 +130,9 @@ All components are built with React and styled using Tailwind CSS for easy custo
 
 To learn more about pro version features and pricing, visit our [pricing page](https://tailadmin.com/pricing).
 
-## Changelog
+## Upstream changelog
+
+The historical notes below are retained from the template and include references to features absent from this Free copy. They do not describe verified local functionality; use the current repository scope above and the source files as the inventory.
 
 ### Version 2.4.0 - [September 13, 2026]
 
@@ -221,7 +246,7 @@ A major update focused on Next.js 16 implementation and comprehensive redesign.
 
 ## License
 
-TailAdmin Next.js Free Version is released under the MIT License.
+TailAdmin Next.js Free Version is released under the MIT License. Preserve the original copyright and permission notice in `LICENSE`. Third-party dependencies retain their respective licenses.
 
 ## Support
 

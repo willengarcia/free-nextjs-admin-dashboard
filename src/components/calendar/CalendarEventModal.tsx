@@ -2,7 +2,7 @@
 
 import { Modal } from "@/components/ui/modal";
 import { cn } from "@/utils";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   CALENDAR_EVENT_LEVELS,
   type CalendarEvent,
@@ -18,7 +18,7 @@ export interface CalendarEventModalProps {
   onSave: (data: EventFormData) => void;
 }
 
-const CalendarEventModal: React.FC<CalendarEventModalProps> = ({
+const CalendarEventForm: React.FC<CalendarEventModalProps> = ({
   isOpen,
   onClose,
   selectedEvent,
@@ -26,36 +26,20 @@ const CalendarEventModal: React.FC<CalendarEventModalProps> = ({
   initialEndDate = "",
   onSave,
 }) => {
-  const [eventTitle, setEventTitle] = useState("");
-  const [eventStartDate, setEventStartDate] = useState("");
-  const [eventEndDate, setEventEndDate] = useState("");
-  const [eventLevel, setEventLevel] = useState("Primary");
-
-  useEffect(() => {
-    if (selectedEvent) {
-      setEventTitle((selectedEvent.title as string) || "");
-      const startStr =
-        typeof selectedEvent.start === "string"
-          ? selectedEvent.start.split("T")[0]
-          : selectedEvent.start instanceof Date
-            ? selectedEvent.start.toISOString().split("T")[0]
-            : "";
-      const endStr =
-        typeof selectedEvent.end === "string"
-          ? selectedEvent.end.split("T")[0]
-          : selectedEvent.end instanceof Date
-            ? selectedEvent.end.toISOString().split("T")[0]
-            : "";
-      setEventStartDate(startStr);
-      setEventEndDate(endStr || startStr);
-      setEventLevel(selectedEvent.extendedProps?.calendar || "Primary");
-    } else {
-      setEventTitle("");
-      setEventStartDate(initialStartDate);
-      setEventEndDate(initialEndDate || initialStartDate);
-      setEventLevel("Primary");
-    }
-  }, [selectedEvent, initialStartDate, initialEndDate, isOpen]);
+  const dateString = (value: CalendarEvent["start"]) =>
+    typeof value === "string"
+      ? value.split("T")[0]
+      : value instanceof Date
+        ? value.toISOString().split("T")[0]
+        : "";
+  const startDate = selectedEvent ? dateString(selectedEvent.start) : initialStartDate;
+  const endDate = selectedEvent ? dateString(selectedEvent.end) : initialEndDate;
+  const [eventTitle, setEventTitle] = useState(selectedEvent?.title || "");
+  const [eventStartDate, setEventStartDate] = useState(startDate);
+  const [eventEndDate, setEventEndDate] = useState(endDate || startDate);
+  const [eventLevel, setEventLevel] = useState(
+    selectedEvent?.extendedProps?.calendar || "Primary",
+  );
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -209,6 +193,18 @@ const CalendarEventModal: React.FC<CalendarEventModalProps> = ({
       </form>
     </Modal>
   );
+};
+
+const CalendarEventModal: React.FC<CalendarEventModalProps> = (props) => {
+  if (!props.isOpen) return null;
+
+  // Each opening/selection starts a fresh draft; ordinary edits keep their state.
+  const formKey = JSON.stringify([
+    props.selectedEvent,
+    props.initialStartDate,
+    props.initialEndDate,
+  ]);
+  return <CalendarEventForm key={formKey} {...props} />;
 };
 
 export default CalendarEventModal;

@@ -20,6 +20,15 @@
       "pro": "pro"
     },
     "items": {
+      "categories": "Categories",
+      "orders": "Orders",
+      "customers": "Customers",
+      "payments": "Payments",
+      "administration": "Administration",
+      "users": "Users",
+      "permissions": "Roles and permissions",
+      "settings": "Settings",
+      "reports": "Reports",
       "dashboard": "Dashboard",
       "ecommerceHome": "Ecommerce",
       "analytics": "Analytics",
@@ -860,7 +869,11 @@
         "inProgress": "In Progress"
       }
     }
+  },
+  "portal": {
+    "title": "Administrative portal",
+    "description": "Access the areas of your administrative portal. The listed features are being prepared.",
+    "planned": "Coming soon",
+    "unavailable": "This area is not available yet. Its features will be added in a later stage."
   }
 }
-
-
