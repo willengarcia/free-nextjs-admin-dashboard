@@ -1,11 +1,16 @@
 import SignInForm from "@/components/auth/SignInForm";
-import { Metadata } from "next";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 
-export const metadata: Metadata = {
-  title: "Next.js SignIn Page | TailAdmin - Next.js Dashboard Template",
-  description: "This is Next.js Signin Page TailAdmin Dashboard Template",
-};
+type Props = { params: Promise<{ locale: string }> };
 
-export default function SignIn() {
+export async function generateMetadata({ params }: Props) {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "auth.signIn" });
+  return { title: t("title"), description: t("description") };
+}
+
+export default async function SignIn({ params }: Props) {
+  const { locale } = await params;
+  setRequestLocale(locale);
   return <SignInForm />;
 }

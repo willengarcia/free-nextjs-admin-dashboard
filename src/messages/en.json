@@ -156,6 +156,24 @@
     "language": "Language",
     "signOut": "Sign out"
   },
+  "auth": {
+    "signIn": {
+      "title": "Administrative sign in",
+      "description": "Enter your credentials to access the administrative portal.",
+      "back": "Back to sign in",
+      "email": "Email",
+      "password": "Password",
+      "showPassword": "Show password",
+      "hidePassword": "Hide password",
+      "submit": "Sign in",
+      "submitting": "Signing in...",
+      "errors": {
+        "invalidCredentials": "Check your email and password and try again.",
+        "noAdminAccess": "This account is not active or does not have administrative access.",
+        "serviceUnavailable": "We could not validate your access right now. Try again shortly."
+      }
+    }
+  },
   "ecommerce": {
     "title": "E-commerce Dashboard",
     "metrics": {

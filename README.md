@@ -16,7 +16,13 @@ The current routes contain a neutral portal overview, profile, visual sign-in/si
 
 Routes use the Next.js App Router under `src/app/[locale]`, with `(admin)` for the sidebar/header shell and `(full-width-pages)` for authentication examples. Only English (`src/messages/en.json`) is enabled, with no locale prefix in URLs. There are no CRM, finance, chat, or alternative-layout pages in this copy.
 
-Shared UI lives in `src/components`, layout in `src/layout`, providers in `src/context`, and internationalization in `src/i18n`. Navigation manifests live in `src/modules/ecommerce` and `src/modules/administration`; `src/config/navigation.tsx` composes them into the portal menu. Resource pages are presentation placeholders only. No API layer, authentication, or business operations have been implemented.
+Shared UI lives in `src/components`, layout in `src/layout`, providers in `src/context`, and internationalization in `src/i18n`. Navigation manifests live in `src/modules/ecommerce` and `src/modules/administration`; `src/config/navigation.tsx` composes them into the portal menu. Resource pages are presentation placeholders only.
+
+### Administrative authentication
+
+The portal uses a server-side authentication bridge. Configure `API_BASE_URL` in a local environment file using `.env.example` as the reference. The browser submits credentials only to `POST /api/auth/login`; the Next.js server calls Spring Boot's `POST /api/v1/auth/login`, validates the returned JWT with `GET /api/v1/customers/me`, and stores that JWT in the `admin_session` HTTP-only cookie.
+
+Every administrative page validates the session again through `/customers/me` and requires `status: "ATIVO"` and `role: "ADMIN"`. The JWT is never available to browser JavaScript. The Spring Boot API remains the authority for all endpoint authorization.
 
 ### Local validation
 

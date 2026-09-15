@@ -42,12 +42,13 @@ src/
 ## Current scope
 
 - Stage 3 adds a neutral portal overview and explicit presentation routes. Module manifests define navigation only, never API permissions or business contracts. Shared primitives must not import domain modules; `config/navigation.tsx` composes module manifests. Add domain UI under its module as the corresponding stage is approved.
-- API clients and session/permission enforcement are not implemented. Menu visibility does not authorize access; Stage 4 requires approval of the session strategy.
+- Stage 4 uses a server-side bridge for authentication. `POST /api/auth/login` forwards credentials to Spring Boot, validates the current user through `/api/v1/customers/me`, and stores the JWT only in the `admin_session` HttpOnly cookie. `API_BASE_URL` is server-only and documented in `.env.example`.
+- The `(admin)` layout checks the current user on every request and permits only `status: ATIVO` with `role: ADMIN`. The Spring Boot API remains responsible for real authorization; menu visibility never grants access.
 
 - Demo routes for calendar, blank, forms, tables, charts, UI elements, and `/error-404` were removed. Their reusable components remain in `src/components`; the real `not-found.tsx` is retained.
 
 - This repository is derived from TailAdmin Free. Preserve `LICENSE` and applicable original notices. Do not introduce Pro components.
-- Authentication, profile actions, dashboard metrics, and tables are demonstrations. There is no backend API integration or session protection yet.
+- Profile actions, dashboard metrics, and tables remain demonstrations. Administrative sign-in, session verification, and logout are implemented; no ecommerce business API has been integrated yet.
 - The intended product is a modular administrative portal, initially for ecommerce. Business rules and API contracts belong to the backend.
 - Proceed through user-approved stages; do not implement authentication, API contracts, or future modules as part of template cleanup.
 
@@ -129,3 +130,13 @@ src/
 - Don't hardcode hex colors or pixel values in `className` — use the `@theme` tokens.
 - Don't create a `tailwind.config` — Tailwind v4 is configured through `globals.css`.
 - Don't import `react-apexcharts`, `FullCalendar`, or `Swiper` statically — always use `next/dynamic` with `ssr: false` (unless already wrapped in a client-only boundary — confirm the existing pattern in that feature folder first).
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

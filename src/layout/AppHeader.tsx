@@ -9,8 +9,9 @@ import { cn } from "@/utils";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import type { AdminSession } from "@/lib/auth/types";
 
-const AppHeader: React.FC = () => {
+const AppHeader: React.FC<{ user: AdminSession }> = ({ user }) => {
   const t = useTranslations("header");
   const inputRef = useRef<HTMLInputElement>(null);
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
@@ -177,7 +178,7 @@ const AppHeader: React.FC = () => {
             {/* <!-- Notification Menu Area --> */}
           </div>
           {/* <!-- User Area --> */}
-          <UserDropdown />
+          <UserDropdown user={user} />
         </div>
       </div>
     </header>
