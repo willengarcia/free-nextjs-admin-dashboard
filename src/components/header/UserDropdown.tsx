@@ -4,11 +4,10 @@ import { useClickOutside } from "@/hooks/useClickOutside";
 import { getLanguage, languages } from "@/i18n/languages";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import type { Locale } from "@/i18n/routing";
-import { ChevronDownIcon } from "@/icons";
+import { ChevronDownIcon, UserIcon } from "@/icons";
 import { cn } from "@/utils";
 import type { AdminSession } from "@/lib/auth/types";
 import { useLocale, useTranslations } from "next-intl";
-import Image from "next/image";
 import { useRef, useState } from "react";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
@@ -23,6 +22,7 @@ export default function UserDropdown({ user }: { user: AdminSession }) {
   const subDropdownRef = useRef<HTMLLIElement>(null);
 
   const currentLang = getLanguage(locale);
+  const displayName = process.env.NEXT_PUBLIC_ADMIN_DISPLAY_NAME?.trim() || user.nomeCompleto;
   const CurrentFlagIcon = currentLang.FlagIcon;
 
   useClickOutside(subDropdownRef, () => {
@@ -59,17 +59,12 @@ export default function UserDropdown({ user }: { user: AdminSession }) {
         onClick={toggleDropdown}
         className="dropdown-toggle flex items-center text-gray-700 dark:text-gray-400"
       >
-        <span className="me-3 h-11 w-11 overflow-hidden rounded-full">
-          <Image
-            width={44}
-            height={44}
-            src="/images/user/owner.png"
-            alt="User"
-          />
+        <span className="me-3 flex h-11 w-11 items-center justify-center rounded-full bg-brand-50 text-brand-500 dark:bg-brand-500/15 dark:text-brand-400">
+          <UserIcon className="size-5" />
         </span>
 
         <span className="me-1 block text-theme-sm font-medium">
-          {user.nomeCompleto}
+          {displayName}
         </span>
 
         <ChevronDownIcon
@@ -86,7 +81,7 @@ export default function UserDropdown({ user }: { user: AdminSession }) {
       >
         <div>
           <span className="block text-theme-sm font-medium text-gray-700 dark:text-gray-400">
-            {user.nomeCompleto}
+            {displayName}
           </span>
           <span className="mt-0.5 block text-theme-xs text-gray-500 dark:text-gray-400">
             {user.email}

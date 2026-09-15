@@ -1,0 +1,29 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "@/i18n/navigation";
+
+export function ProductActions({ id }: { id: number }) {
+  const router = useRouter();
+  const [busy, setBusy] = useState(false);
+  async function deactivate() {
+    if (!window.confirm("Deactivate this product?")) return;
+    setBusy(true);
+    await fetch(`/api/admin/products/${id}`, { method: "DELETE" });
+    router.refresh();
+    setBusy(false);
+  }
+  return <button type="button" disabled={busy} onClick={deactivate} className="text-sm font-medium text-error-500 disabled:opacity-50">{busy ? "Updating..." : "Deactivate"}</button>;
+}
+
+export function CustomerRoleSelect({ id, role }: { id: number; role: "ADMIN" | "CUSTOMER" }) {
+  const router = useRouter();
+  const [busy, setBusy] = useState(false);
+  async function update(nextRole: string) {
+    setBusy(true);
+    await fetch(`/api/admin/customers/${id}/role`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ role: nextRole }) });
+    router.refresh();
+    setBusy(false);
+  }
+  return <select aria-label="Customer role" disabled={busy} value={role} onChange={(event) => update(event.target.value)} className="rounded border border-gray-300 bg-transparent px-2 py-1 text-sm dark:border-gray-700"><option>ADMIN</option><option>CUSTOMER</option></select>;
+}
