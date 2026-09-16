@@ -310,6 +310,18 @@
   @apply text-white/90;
 }
 
+.dark select {
+  @apply border-gray-700 bg-gray-900 text-white shadow-theme-xs;
+}
+
+.dark select:focus {
+  @apply border-brand-500 ring-3 ring-brand-500/20 outline-hidden;
+}
+
+.dark select option {
+  @apply bg-gray-900 text-white;
+}
+
 .dark .custom-scrollbar::-webkit-scrollbar-thumb {
   background-color: #344054;
 }
