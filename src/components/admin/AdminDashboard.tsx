@@ -1,6 +1,5 @@
 import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
-import Badge from "@/components/ui/badge/Badge";
 import type { AdminDashboard as DashboardData, AdminOrder, PageResponse } from "@/lib/admin/types";
 
 const sections = [
@@ -9,6 +8,8 @@ const sections = [
   ["Usuários", "clientes"],
   ["Produtos", "produtos"],
 ] as const;
+
+const money = (value: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
 
 function label(value: string) {
   return value.replace(/([A-Z])/g, " $1").replace(/^./, (char) => char.toUpperCase());
@@ -46,7 +47,7 @@ export default function AdminDashboard({ data, orders }: { data: DashboardData |
             ))}
           </div>
           <ComponentCard title="Últimos pedidos">
-            {!orders ? <p className="text-sm text-gray-500 dark:text-gray-400">Não foi possível carregar os pedidos recentes.</p> : <div className="overflow-x-auto"><table className="min-w-full"><thead><tr className="border-b border-gray-100 text-start dark:border-white/[0.05]"><th className="px-3 py-3 text-start text-theme-xs font-medium text-gray-500">Pedido</th><th className="px-3 py-3 text-start text-theme-xs font-medium text-gray-500">Usuário</th><th className="px-3 py-3 text-start text-theme-xs font-medium text-gray-500">Itens</th><th className="px-3 py-3 text-start text-theme-xs font-medium text-gray-500">Valor</th><th className="px-3 py-3 text-start text-theme-xs font-medium text-gray-500">Status</th></tr></thead><tbody>{orders.content.map((order) => <tr key={order.orderId} className="border-b border-gray-100 last:border-0 dark:border-white/[0.05]"><td className="px-3 py-4 text-sm font-medium text-gray-800 dark:text-white/90">#{order.orderId}</td><td className="px-3 py-4 text-sm text-gray-700 dark:text-gray-300">{order.customer.nomeCompleto}</td><td className="px-3 py-4 text-sm text-gray-700 dark:text-gray-300">{order.items.length}</td><td className="px-3 py-4 text-sm font-medium text-gray-800 dark:text-white/90">{new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(order.valorTotal)}</td><td className="px-3 py-4"><Badge color={order.status === "CANCELADO" ? "error" : order.status === "ENTREGUE" ? "success" : "warning"}>{order.status}</Badge></td></tr>)}</tbody></table></div>}
+            {!orders ? <p className="text-sm text-gray-500 dark:text-gray-400">Não foi possível carregar os pedidos recentes.</p> : <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7">{orders.content.map((order) => { const info = order.status === "CANCELADO" ? ["C", "Cancelado", "bg-error-50 text-error-600 dark:bg-error-500/15"] : order.status === "PAGO" ? ["P", "Pago", "bg-brand-50 text-brand-600 dark:bg-brand-500/15"] : order.status === "ENTREGUE" ? ["E", "Entregue", "bg-success-50 text-success-600 dark:bg-success-500/15"] : order.status === "REEMBOLSADO" ? ["R", "Reembolsado", "bg-orange-50 text-orange-600 dark:bg-orange-500/15"] : [order.status.slice(0, 1), order.status, "bg-gray-100 text-gray-600 dark:bg-white/10 dark:text-gray-300"]; return <article key={order.orderId} className="rounded-xl border border-gray-200 p-3 dark:border-white/[0.05]"><div className="flex items-start justify-between"><span className="font-semibold">#{order.orderId}</span><span title={info[1]} className={`flex size-7 cursor-help items-center justify-center rounded-md text-xs font-bold ${info[2]}`}>{info[0]}</span></div><p className="mt-3 text-sm font-medium">{money(order.valorTotal)}</p><p className="mt-1 text-theme-xs text-gray-500">{info[1]}</p></article>; })}</div>}
           </ComponentCard>
         </>
       )}
