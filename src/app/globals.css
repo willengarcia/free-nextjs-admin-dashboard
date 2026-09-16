@@ -290,6 +290,14 @@
   }
 }
 
+/* Administrative forms must keep readable native controls in dark mode. */
+.dark input:not([type="checkbox"]):not([type="radio"]),
+.dark select,
+.dark textarea {
+  @apply text-white/90 placeholder:text-gray-400;
+  color-scheme: dark;
+}
+
 .dark .custom-scrollbar::-webkit-scrollbar-thumb {
   background-color: #344054;
 }
