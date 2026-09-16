@@ -42,7 +42,7 @@ export function getQuery(searchParams: Record<string, string | string[] | undefi
     if (typeof value === "string" && value.trim()) params.set(key, value);
   }
   if (!params.has("page")) params.set("page", "0");
-  if (!params.has("size")) params.set("size", "20");
+  params.set("size", "20");
   if (!params.has("sort")) params.set("sort", "dataCriacao,desc");
   return params.toString();
 }
