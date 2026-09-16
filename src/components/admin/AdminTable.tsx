@@ -11,11 +11,13 @@ export default function AdminTable<T>({
   data,
   columns,
   filters,
+  rowClassName,
 }: {
   title: string;
   data: PageResponse<T> | null;
   columns: Column<T>[];
   filters: ReactNode;
+  rowClassName?: (item: T) => string;
 }) {
   return (
     <>
@@ -27,7 +29,7 @@ export default function AdminTable<T>({
             <Table>
               <TableHeader className="border-y border-gray-100 bg-gray-50 dark:border-white/[0.05] dark:bg-white/[0.03]"><TableRow>{columns.map((column) => <TableCell key={column.label} isHeader className="px-4 py-3 text-start text-theme-xs font-medium text-gray-500 dark:text-gray-400">{column.label}</TableCell>)}</TableRow></TableHeader>
               <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-                {data.content.map((item, index) => <TableRow key={index}>{columns.map((column) => <TableCell key={column.label} className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{column.value(item)}</TableCell>)}</TableRow>)}
+                {data.content.map((item, index) => <TableRow key={index} className={rowClassName?.(item)}>{columns.map((column) => <TableCell key={column.label} className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{column.value(item)}</TableCell>)}</TableRow>)}
               </TableBody>
             </Table>
             {data.content.length === 0 && <p className="p-4 text-sm text-gray-500 dark:text-gray-400">No records found.</p>}
