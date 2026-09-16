@@ -31,7 +31,8 @@ export type AdminOrder = {
   valorTotal: number;
   status: string;
   customer: { nomeCompleto: string; email: string };
-  items: Array<{ nomeProduto: string; quantidade: number }>;
+  address?: { rua: string; numero: string; bairro: string; cidade: string; estado: string; cep: string };
+  items: Array<{ nomeProduto: string; quantidade: number; precoUnitario: number; subTotal: number }>;
 };
 
 export type AdminPayment = {

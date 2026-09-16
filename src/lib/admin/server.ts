@@ -30,6 +30,12 @@ export async function getAdminData<T>(path: string): Promise<T | null> {
   }
 }
 
+export async function getCommerceData<T>(path: string): Promise<T | null> {
+  const sessionToken = await token();
+  if (!sessionToken) return null;
+  try { const response = await fetch(`${baseUrl()}/api/v1${path}`, { headers: { Authorization: `Bearer ${sessionToken}` }, cache: "no-store" }); return response.ok ? await response.json() as T : null; } catch { return null; }
+}
+
 export function getQuery(searchParams: Record<string, string | string[] | undefined>) {
   const params = new URLSearchParams();
   for (const [key, value] of Object.entries(searchParams)) {

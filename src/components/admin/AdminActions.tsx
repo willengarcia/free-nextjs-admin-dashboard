@@ -27,3 +27,11 @@ export function CustomerRoleSelect({ id, role }: { id: number; role: "ADMIN" | "
   }
   return <select aria-label="Customer role" disabled={busy} value={role} onChange={(event) => update(event.target.value)} className="rounded border border-gray-300 bg-transparent px-2 py-1 text-sm dark:border-gray-700"><option>ADMIN</option><option>CUSTOMER</option></select>;
 }
+
+export function OrderFulfillment({ id, status }: { id: number; status: string }) {
+  const router = useRouter();
+  const next: Record<string, string> = { PAGO: "PROCESSADO", PROCESSADO: "SEPARADO", SEPARADO: "PREPARANDO", PREPARANDO: "ENVIADO", ENVIADO: "ENTREGUE" };
+  const target = next[status];
+  async function advance() { if (!target) return; const response = await fetch(`/api/commerce/admin/orders/${id}/fulfillment`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: target }) }); if (response.ok) router.refresh(); }
+  return target ? <button onClick={advance} className="text-sm font-medium text-brand-500">Avançar para {target}</button> : <span className="text-xs text-gray-400">Sem ação</span>;
+}
