@@ -1,0 +1,13 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "@/i18n/navigation";
+
+export default function ProductEditButton({ id }: { id: number }) {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [data, setData] = useState<Record<string, string>>({});
+  async function openEditor() { const response = await fetch(`/api/commerce/products/${id}`); if (!response.ok) return; const product = await response.json(); setData(Object.fromEntries(Object.entries(product).map(([key, value]) => [key, value == null ? "" : String(value)]))); setOpen(true); }
+  async function save() { const allowed = ["nome", "slug", "descricaoCurta", "descricao", "preco", "precoPromocional", "estoqueMinimo", "peso", "altura", "largura", "comprimento", "status", "categoriaId"]; const body = Object.fromEntries(Object.entries(data).filter(([key, value]) => allowed.includes(key) && value !== "")); const response = await fetch(`/api/admin/products/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }); if (response.ok) { setOpen(false); router.refresh(); } }
+  return <><button type="button" onClick={openEditor} title="Editar produto" aria-label="Editar produto" className="text-brand-500">✎</button>{open && <div className="fixed inset-0 z-99999 flex items-center justify-center bg-gray-950/60 p-4"><div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-5 dark:bg-gray-900"><div className="mb-4 flex justify-between"><h2 className="font-semibold">Editar produto</h2><button onClick={() => setOpen(false)}>×</button></div><div className="grid gap-3 sm:grid-cols-2">{["nome", "slug", "descricaoCurta", "preco", "precoPromocional", "estoqueMinimo", "peso", "altura", "largura", "comprimento", "categoriaId"].map((field) => <label key={field} className="text-sm">{field}<input value={data[field] ?? ""} onChange={(event) => setData({ ...data, [field]: event.target.value })} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 dark:border-gray-700" /></label>)}<label className="text-sm">Status<select value={data.status ?? "ATIVO"} onChange={(event) => setData({ ...data, status: event.target.value })} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 dark:border-gray-700"><option>ATIVO</option><option>INATIVO</option><option>SEM_ESTOQUE</option></select></label></div><div className="mt-5 flex justify-end gap-3"><button onClick={() => setOpen(false)}>Cancelar</button><button onClick={save} className="rounded-lg bg-brand-500 px-4 py-2 text-white">Salvar</button></div></div></div>}</>;
+}
