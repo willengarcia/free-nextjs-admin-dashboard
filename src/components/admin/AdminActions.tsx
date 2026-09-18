@@ -33,5 +33,5 @@ export function OrderFulfillment({ id, status }: { id: number; status: string })
   const next: Record<string, string> = { PAGO: "PROCESSADO", PROCESSADO: "SEPARADO", SEPARADO: "PREPARANDO", PREPARANDO: "ENVIADO", ENVIADO: "ENTREGUE" };
   const target = next[status];
   async function advance() { if (!target) return; const response = await fetch(`/api/commerce/admin/orders/${id}/fulfillment`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: target }) }); if (response.ok) router.refresh(); }
-  return target ? <button onClick={advance} className="text-sm font-medium text-brand-500">Avançar para {target}</button> : <span className="text-xs text-gray-400">Sem ação</span>;
+  return target ? <button type="button" onClick={advance} className="rounded-lg bg-brand-500 px-3 py-2 text-xs font-semibold text-white shadow-theme-xs hover:bg-brand-600">Avançar para {target}</button> : <span className="text-xs text-gray-400">Sem ação</span>;
 }
