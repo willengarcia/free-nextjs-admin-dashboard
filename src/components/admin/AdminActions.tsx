@@ -13,7 +13,7 @@ export function ProductActions({ id }: { id: number }) {
     router.refresh();
     setBusy(false);
   }
-  return <button type="button" disabled={busy} onClick={deactivate} className="text-sm font-medium text-error-500 disabled:opacity-50">{busy ? "Updating..." : "Deactivate"}</button>;
+  return <button type="button" disabled={busy} onClick={deactivate} title="Inativar produto" aria-label="Inativar produto" className="font-medium text-error-500 disabled:opacity-50">{busy ? "…" : "⊘"}</button>;
 }
 
 export function CustomerRoleSelect({ id, role }: { id: number; role: "ADMIN" | "CUSTOMER" }) {
