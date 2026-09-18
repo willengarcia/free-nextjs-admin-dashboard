@@ -1,21 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 export default function ProductImageUpload({ productId }: { productId: number }) {
-  const [file, setFile] = useState<File | null>(null);
-  const [mainImage, setMainImage] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
   const [message, setMessage] = useState("");
-
-  async function upload() {
-    if (!file) return;
+  const [mainImage, setMainImage] = useState(false);
+  async function upload(file: File) {
     setMessage("Enviando...");
-    const data = new FormData();
-    data.append("file", file);
-    const response = await fetch(`/api/commerce/products/${productId}/images?imagemPrincipal=${mainImage}`, { method: "POST", body: data });
-    setMessage(response.ok ? "Imagem enviada." : "Não foi possível enviar a imagem.");
-    if (response.ok) setFile(null);
+    const form = new FormData();
+    form.append("file", file);
+    const response = await fetch(`/api/commerce/products/${productId}/images?imagemPrincipal=${mainImage}`, { method: "POST", body: form });
+    setMessage(response.ok ? "Imagem enviada" : "Falha no envio");
   }
-
-  return <details className="relative"><summary title="Gerenciar imagens" aria-label="Gerenciar imagens" className="cursor-pointer list-none text-brand-500">▣</summary><div className="absolute end-0 z-10 mt-2 w-72 rounded-lg border border-gray-200 bg-white p-3 shadow-theme-md dark:border-gray-700 dark:bg-gray-900"><input type="file" accept="image/*" onChange={(event) => setFile(event.target.files?.[0] ?? null)} className="block w-full text-xs" /><label className="mt-3 flex items-center gap-2 text-xs"><input type="checkbox" checked={mainImage} onChange={(event) => setMainImage(event.target.checked)} />Imagem principal</label><button type="button" disabled={!file} onClick={upload} className="mt-3 rounded bg-brand-500 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50">Enviar</button>{message && <p className="mt-2 text-xs text-gray-500">{message}</p>}</div></details>;
+  return <span className="relative inline-flex items-center gap-1"><select value={mainImage ? "true" : "false"} onChange={(event) => setMainImage(event.target.value === "true")} aria-label="Tipo da imagem" className="h-8 max-w-24 rounded-lg border border-gray-300 bg-white px-2 text-xs dark:border-gray-700 dark:bg-gray-900"><option value="false">Comum</option><option value="true">Principal</option></select><input ref={inputRef} type="file" accept="image/*" className="sr-only" onChange={(event) => { const file = event.target.files?.[0]; if (file) void upload(file); }} /><button type="button" onClick={() => inputRef.current?.click()} title="Enviar imagem" aria-label="Enviar imagem" className="inline-flex size-8 items-center justify-center rounded-lg border border-brand-200 bg-brand-50 text-brand-600 hover:bg-brand-100 dark:border-brand-500/30 dark:bg-brand-500/15 dark:text-brand-300">↑</button>{message && <span className="absolute start-0 top-full z-10 mt-1 w-24 rounded bg-gray-900 px-2 py-1 text-xs text-white">{message}</span>}</span>;
 }
