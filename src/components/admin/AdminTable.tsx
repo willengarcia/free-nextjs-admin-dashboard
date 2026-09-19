@@ -13,17 +13,20 @@ export default function AdminTable<T>({
   columns,
   filters,
   rowClassName,
+  tools,
 }: {
   title: string;
   data: PageResponse<T> | null;
   columns: Column<T>[];
   filters: ReactNode;
   rowClassName?: (item: T) => string;
+  tools?: ReactNode;
 }) {
   return (
     <>
       <PageBreadcrumb pageTitle={title} />
       <ComponentCard title={title}>
+        {tools}
         <form className="mb-5 grid grid-cols-1 gap-3 md:grid-cols-4">{filters}<button className="rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600" type="submit">Apply filters</button></form>
         {!data ? <p className="text-sm text-gray-500 dark:text-gray-400">We could not load this data. Check your session and try again.</p> : (<>
           <div className="hidden overflow-x-auto md:block">
