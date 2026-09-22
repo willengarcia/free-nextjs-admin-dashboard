@@ -23,7 +23,28 @@ export type AdminProduct = {
   quantidadeDisponivel: number;
   estoqueMinimo: number;
   status: string;
+  categoriaId: number | null;
   categoriaNome: string | null;
+  brandId: number | null;
+  brandName: string | null;
+};
+
+export type AdminCategoryTree = {
+  id: number;
+  name: string;
+  description: string;
+  ativo: boolean;
+  parentCategoryId: number | null;
+  children: AdminCategoryTree[];
+};
+
+export type AdminBrand = {
+  id: number;
+  name: string;
+  slug: string;
+  ativo: boolean;
+  dataCriacao: string;
+  dataAtualizacao: string;
 };
 
 export type AdminOrder = {

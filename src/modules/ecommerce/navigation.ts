@@ -11,6 +11,10 @@ export const ecommerceNavigation: NavigationLink[] = [
     "path": "/ecommerce/categories"
   },
   {
+    "key": "brands",
+    "path": "/ecommerce/brands"
+  },
+  {
     "key": "orders",
     "path": "/ecommerce/orders"
   },
