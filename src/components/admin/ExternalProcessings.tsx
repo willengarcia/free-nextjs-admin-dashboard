@@ -1,19 +1,296 @@
 "use client";
-import { useState } from "react";
-import { usePathname, useRouter } from "@/i18n/navigation";
+import { useCallback, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
+import ComponentCard from "@/components/common/ComponentCard";
+import Button from "@/components/ui/button/Button";
 import Alert from "@/components/ui/alert/Alert";
-import { Modal } from "@/components/ui/modal";
-import PaginationControls from "@/components/admin/PaginationControls";
-import { completeExternalProcessing } from "@/lib/admin/external-processing-client";
-import type { ExternalProcessingResponse, PageResponse } from "@/lib/admin/types";
-type Notice={variant:"success"|"error";title:string;message:string};
-const mode:Record<ExternalProcessingResponse["mode"],string>={MANUAL:"Manual",INTEGRATION:"Integração"}; const status:Record<ExternalProcessingResponse["status"],string>={PENDING:"Pendente",PROCESSING:"Processando",PROCESSED:"Processado",FAILED:"Falhou"};
-const date=(value:string|null)=>value?new Intl.DateTimeFormat("pt-BR",{dateStyle:"short",timeStyle:"short"}).format(new Date(value)):"-";
-export default function ExternalProcessings({data,statusFilter}:{data:PageResponse<ExternalProcessingResponse>|null;statusFilter:string}){
- const router=useRouter(),pathname=usePathname();const[selected,setSelected]=useState<ExternalProcessingResponse|null>(null),[completing,setCompleting]=useState<ExternalProcessingResponse|null>(null),[reference,setReference]=useState(""),[busy,setBusy]=useState(false),[notice,setNotice]=useState<Notice|null>(null);const show=(n:Notice)=>{setNotice(n);window.setTimeout(()=>setNotice(null),5000)};
- const setFilter=(value:string)=>{const params=new URLSearchParams(window.location.search);value?params.set("status",value):params.delete("status");params.set("page","0");params.set("size","20");router.push(`${pathname}?${params}`)};
- async function complete(){if(!completing)return;setBusy(true);const r=await completeExternalProcessing(completing.id,reference.trim()||null);if(!r.ok){setBusy(false);return show({variant:"error",title:"Não foi possível concluir",message:await error(r)})}setBusy(false);setCompleting(null);show({variant:"success",title:"Processamento concluído",message:"O pedido foi marcado como processado."});router.refresh()}
- const actions=(item:ExternalProcessingResponse)=><div className="flex flex-wrap gap-2"><button type="button" onClick={()=>setSelected(item)} className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-semibold dark:border-gray-700">Ver</button>{item.mode==="MANUAL"&&item.status==="PENDING"&&<button type="button" onClick={()=>{setCompleting(item);setReference(item.externalReference??"")}} className="rounded-lg bg-brand-500 px-3 py-1.5 text-xs font-semibold text-white">Marcar como processado</button>}</div>;
- return <><section className="mt-6 rounded-xl border border-gray-200 bg-white p-5 dark:border-white/[0.05] dark:bg-white/[0.03]"><div className="mb-4 flex flex-wrap items-center justify-between gap-3"><div><h2 className="font-semibold">Processamentos externos</h2><p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Pedidos pagos aguardando processamento externo.</p></div><div className="flex rounded-lg border border-gray-200 p-1 dark:border-gray-700">{[["","Todos"],["PENDING","Pendentes"],["PROCESSED","Processados"]].map(([value,label])=><button key={value} type="button" onClick={()=>setFilter(value)} className={`rounded-md px-3 py-1.5 text-sm ${statusFilter===value?"bg-brand-500 text-white":"text-gray-600 dark:text-gray-300"}`}>{label}</button>)}</div></div>{!data?<p className="text-sm text-error-500">Não foi possível carregar os processamentos externos.</p>:<><div className="hidden overflow-x-auto md:block"><table className="min-w-full"><thead><tr className="text-left text-sm text-gray-500"><th>Pedido</th><th>Modo</th><th>Status</th><th>Referência externa</th><th>Criado em</th><th>Processado em</th><th>Ações</th></tr></thead><tbody>{data.content.map((item)=><tr key={item.id} className="border-t border-gray-100 dark:border-white/[0.05]"><td className="py-3">#{item.orderId}</td><td>{mode[item.mode]}</td><td><Status status={item.status}/></td><td>{item.externalReference??"-"}</td><td>{date(item.createdAt)}</td><td>{date(item.processedAt)}</td><td>{actions(item)}</td></tr>)}</tbody></table></div><div className="grid gap-3 md:hidden">{data.content.map((item)=><article key={item.id} className="rounded-xl border border-gray-200 p-4 dark:border-gray-700"><div className="flex justify-between"><b>Pedido #{item.orderId}</b><Status status={item.status}/></div><p className="mt-2 text-sm">Modo: {mode[item.mode]}</p><p className="text-sm">Referência: {item.externalReference??"-"}</p><p className="text-sm text-gray-500">Criado em: {date(item.createdAt)}</p><div className="mt-3">{actions(item)}</div></article>)}</div>{data.content.length===0&&<p className="py-6 text-center text-sm text-gray-500">{statusFilter==="PENDING"?"Nenhum processamento externo pendente.":"Nenhum processamento externo encontrado."}</p>}<PaginationControls page={data.number} totalPages={data.totalPages} total={data.totalElements}/></>}</section>{notice&&<div className="fixed right-5 top-5 z-[100000] w-[min(24rem,calc(100vw-2.5rem))]"><Alert {...notice}/></div>}<Modal isOpen={!!selected} onClose={()=>setSelected(null)} className="m-4 max-w-lg p-6"><Details item={selected}/></Modal><Modal isOpen={!!completing} onClose={()=>!busy&&setCompleting(null)} className="m-4 max-w-lg p-6" showCloseButton={!busy}><h3 className="text-lg font-semibold">Marcar pedido #{completing?.orderId} como processado</h3><label className="mt-4 block text-sm font-medium">Referência externa <span className="font-normal text-gray-500">(opcional)</span><input value={reference} onChange={(e)=>setReference(e.target.value)} placeholder="ERP-12345" className="mt-1 w-full rounded-lg border border-gray-300 bg-transparent px-3 py-2 dark:border-gray-700"/></label><div className="mt-6 flex justify-end gap-3"><button type="button" disabled={busy} onClick={()=>setCompleting(null)}>Cancelar</button><button type="button" disabled={busy} onClick={()=>void complete()} className="rounded-lg bg-brand-500 px-4 py-2 text-white disabled:opacity-50">{busy?"Processando...":"Marcar como processado"}</button></div></Modal></>}
-function Status({status:value}:{status:ExternalProcessingResponse["status"]}){const tone=value==="PROCESSED"?"bg-success-50 text-success-600":value==="FAILED"?"bg-error-50 text-error-600":value==="PROCESSING"?"bg-warning-50 text-warning-600":"bg-brand-50 text-brand-600";return <span className={`rounded-full px-2 py-1 text-xs font-semibold ${tone}`}>{status[value]}</span>}
-function Details({item}:{item:ExternalProcessingResponse|null}){if(!item)return null;return <div><h3 className="text-lg font-semibold">Processamento #{item.id}</h3><dl className="mt-4 grid gap-3 text-sm"><Row label="Pedido" value={`#${item.orderId}`}/><Row label="Modo" value={mode[item.mode]}/><Row label="Status" value={status[item.status]}/><Row label="Referência externa" value={item.externalReference??"-"}/><Row label="Criado em" value={date(item.createdAt)}/><Row label="Atualizado em" value={date(item.updatedAt)}/><Row label="Processado em" value={date(item.processedAt)}/></dl></div>};function Row({label,value}:{label:string;value:string}){return <div className="flex justify-between gap-4"><dt className="text-gray-500">{label}</dt><dd className="text-right">{value}</dd></div>};async function error(r:Response){const raw=await r.text();try{const json:unknown=JSON.parse(raw);if(typeof json==="object"&&json&&"message" in json&&typeof json.message==="string")return json.message;return raw||"A operação não foi concluída."}catch{return raw||"A operação não foi concluída."}}
+import Input from "@/components/form/input/InputField";
+import Label from "@/components/form/Label";
+import { useModal } from "@/hooks/useModal";
+import PaginationControls from "./PaginationControls";
+import {
+  completeExternalProcessing,
+  getExternalProcessingById,
+  listExternalProcessings,
+} from "@/lib/admin/external-processing-client";
+import { requireReportResponse } from "@/lib/admin/report-service";
+import { formatReportDate } from "@/lib/admin/report-format";
+import type { ExternalProcessingResponse } from "@/lib/admin/types";
+import ReportDialog from "@/components/reports/ReportDialog";
+import ReportStatus from "@/components/reports/ReportStatus";
+import ReportFeedback from "@/components/reports/ReportFeedback";
+import useReportResource from "@/components/reports/useReportResource";
+
+export default function ExternalProcessings({
+  onCompleted,
+}: {
+  onCompleted: () => void;
+}) {
+  const t = useTranslations("reports");
+  const [query, setQuery] = useState({ status: "", page: 0, size: 20 });
+  const [revision, setRevision] = useState(0);
+  const [selected, setSelected] = useState<ExternalProcessingResponse | null>(
+    null,
+  );
+  const [reference, setReference] = useState("");
+  const [busy, setBusy] = useState(false);
+  const busyRef = useRef(false);
+  const [detailBusy, setDetailBusy] = useState(false);
+  const [actionError, setActionError] = useState<unknown>(null);
+  const [completed, setCompleted] = useState(false);
+  const modal = useModal();
+  const load = useCallback(
+    (signal: AbortSignal) => {
+      void revision;
+      return listExternalProcessings(query, signal);
+    },
+    [query, revision],
+  );
+  const { data, error, loading } = useReportResource(load);
+
+  async function view(item: ExternalProcessingResponse) {
+    if (busyRef.current) return;
+    busyRef.current = true;
+    setDetailBusy(true);
+    setActionError(null);
+    setSelected(null);
+    setCompleted(false);
+    modal.openModal();
+    try {
+      const response = await requireReportResponse(
+        await getExternalProcessingById(item.id),
+      );
+      const fresh: ExternalProcessingResponse = await response.json();
+      setSelected(fresh);
+      setReference(fresh.externalReference ?? "");
+    } catch (error) {
+      setActionError(error);
+    } finally {
+      setDetailBusy(false);
+      busyRef.current = false;
+    }
+  }
+  async function complete() {
+    if (
+      !selected ||
+      selected.mode !== "MANUAL" ||
+      selected.status !== "PENDING" ||
+      busyRef.current
+    )
+      return;
+    busyRef.current = true;
+    setBusy(true);
+    setActionError(null);
+    try {
+      await requireReportResponse(
+        await completeExternalProcessing(selected.id, reference.trim() || null),
+      );
+      modal.closeModal();
+      setSelected(null);
+      setCompleted(true);
+      setQuery((previous) => ({ ...previous, page: 0 }));
+      setRevision((value) => value + 1);
+      onCompleted();
+    } catch (error) {
+      setActionError(error);
+    } finally {
+      setBusy(false);
+      busyRef.current = false;
+    }
+  }
+  const mode = (value: string) =>
+    t.has(`statuses.${value}`) ? t(`statuses.${value}`) : value;
+  return (
+    <ComponentCard title={t("external")} desc={t("externalDescription")}>
+      <div className="flex flex-wrap gap-2" aria-label={t("processing")}>
+        {[
+          ["", "all"],
+          ["PENDING", "pending"],
+          ["PROCESSED", "processed"],
+        ].map(([value, label]) => (
+          <Button
+            key={value}
+            size="sm"
+            variant={query.status === value ? "primary" : "outline"}
+            disabled={busy}
+            onClick={() => setQuery({ ...query, status: value, page: 0 })}
+          >
+            {t(label)}
+          </Button>
+        ))}
+      </div>
+      {completed && (
+        <div role="status">
+          <Alert
+            variant="success"
+            title={t("completeSuccess")}
+            message={t("completeSuccessDescription")}
+          />
+        </div>
+      )}
+      {loading && (
+        <p role="status" className="text-sm text-gray-500 dark:text-gray-400">
+          {t("loadingExternal")}
+        </p>
+      )}
+      {error != null && (
+        <ReportFeedback
+          error={error}
+          title={t("externalLoadError")}
+          retry={() => setRevision((value) => value + 1)}
+        />
+      )}
+      {data && (
+        <>
+          <div className="grid gap-4 lg:grid-cols-2">
+            {data.content.map((item) => (
+              <article
+                key={item.id}
+                className="min-w-0 space-y-4 rounded-xl border border-gray-200 p-4 dark:border-gray-700"
+              >
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h3 className="font-semibold">
+                    {t("orderNumber", { id: item.orderId })}
+                  </h3>
+                  <ReportStatus value={item.status} />
+                </div>
+                <dl className="grid gap-3 text-sm sm:grid-cols-2">
+                  <div>
+                    <dt className="text-gray-500 dark:text-gray-400">
+                      {t("mode")}
+                    </dt>
+                    <dd>{mode(item.mode)}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-gray-500 dark:text-gray-400">
+                      {t("reference")}
+                    </dt>
+                    <dd className="break-words">
+                      {item.externalReference ?? t("notProvided")}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-gray-500 dark:text-gray-400">
+                      {t("createdAt")}
+                    </dt>
+                    <dd>
+                      {formatReportDate(item.createdAt) ?? t("unavailable")}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-gray-500 dark:text-gray-400">
+                      {t("processedAt")}
+                    </dt>
+                    <dd>
+                      {formatReportDate(item.processedAt) ?? t("notProcessed")}
+                    </dd>
+                  </div>
+                </dl>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={detailBusy || busy}
+                  onClick={() => void view(item)}
+                >
+                  {item.mode === "MANUAL" && item.status === "PENDING"
+                    ? t("viewAndComplete")
+                    : t("viewDetails")}
+                </Button>
+              </article>
+            ))}
+          </div>
+          {data.content.length === 0 && (
+            <p className="py-6 text-center text-sm text-gray-500 dark:text-gray-400">
+              {t("emptyExternal")}
+            </p>
+          )}
+          <PaginationControls
+            page={data.number}
+            totalPages={data.totalPages}
+            total={data.totalElements}
+            onPageChange={(page) =>
+              setQuery({ ...query, page, size: data.size })
+            }
+            disabled={busy}
+          />
+        </>
+      )}
+      <ReportDialog
+        open={modal.isOpen}
+        onClose={modal.closeModal}
+        busy={busy || detailBusy}
+        title={
+          selected ? t("processingNumber", { id: selected.id }) : t("external")
+        }
+      >
+        {detailBusy && <p role="status">{t("loadingExternal")}</p>}
+        {actionError != null && (
+          <ReportFeedback error={actionError} title={t("actionError")} />
+        )}
+        {selected && (
+          <>
+            <dl className="grid gap-4 text-sm sm:grid-cols-2">
+              <div>
+                <dt>{t("order")}</dt>
+                <dd>#{selected.orderId}</dd>
+              </div>
+              <div>
+                <dt>{t("mode")}</dt>
+                <dd>{mode(selected.mode)}</dd>
+              </div>
+              <div>
+                <dt>{t("status")}</dt>
+                <dd>
+                  <ReportStatus value={selected.status} />
+                </dd>
+              </div>
+              <div>
+                <dt>{t("reference")}</dt>
+                <dd className="break-words">
+                  {selected.externalReference ?? t("notProvided")}
+                </dd>
+              </div>
+              {(["createdAt", "updatedAt", "processedAt"] as const).map(
+                (key) => (
+                  <div key={key}>
+                    <dt>{t(key)}</dt>
+                    <dd>
+                      {formatReportDate(selected[key]) ?? t("notProcessed")}
+                    </dd>
+                  </div>
+                ),
+              )}
+            </dl>
+            {selected.mode === "MANUAL" && selected.status === "PENDING" && (
+              <form
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  void complete();
+                }}
+                className="space-y-4 border-t border-gray-200 pt-4 dark:border-gray-700"
+              >
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  {t("completeDescription")}
+                </p>
+                <div>
+                  <Label htmlFor="external-reference">
+                    {t("optionalReference")}
+                  </Label>
+                  <Input
+                    id="external-reference"
+                    value={reference}
+                    onChange={(event) => setReference(event.target.value)}
+                    disabled={busy}
+                  />
+                </div>
+                <Button type="submit" size="sm" disabled={busy}>
+                  {busy ? t("completing") : t("complete")}
+                </Button>
+              </form>
+            )}
+          </>
+        )}
+      </ReportDialog>
+    </ComponentCard>
+  );
+}
