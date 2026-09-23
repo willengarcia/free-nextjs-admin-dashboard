@@ -47,6 +47,26 @@ export type AdminBrand = {
   dataAtualizacao: string;
 };
 
+export type StockMovementType = "ENTRADA" | "SAIDA" | "AJUSTE";
+
+export type ProductStockUpdateRequest = {
+  tipo: StockMovementType;
+  quantidade: number;
+};
+
+export type AdminProductImage = {
+  id: number;
+  urlImagem: string;
+  nomeArquivo: string;
+  imagemPrincipal: boolean;
+};
+
+export type ProductStockSummary = {
+  quantidadeEstoque: number;
+  quantidadeReservada: number;
+  estoqueMinimo: number;
+};
+
 export type AdminOrder = {
   orderId: number;
   valorTotal: number;
