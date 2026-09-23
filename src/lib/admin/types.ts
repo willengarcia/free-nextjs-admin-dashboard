@@ -67,6 +67,19 @@ export type ProductStockSummary = {
   estoqueMinimo: number;
 };
 
+export type ExternalProcessingMode = "MANUAL" | "INTEGRATION";
+export type ExternalProcessingStatus = "PENDING" | "PROCESSING" | "PROCESSED" | "FAILED";
+export type ExternalProcessingResponse = {
+  id: number;
+  orderId: number;
+  mode: ExternalProcessingMode;
+  status: ExternalProcessingStatus;
+  externalReference: string | null;
+  processedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type AdminOrder = {
   orderId: number;
   valorTotal: number;
