@@ -1,5 +1,6 @@
 import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
+import DashboardStatusChart from "@/components/admin/DashboardStatusChart";
 import type { AdminDashboard as DashboardData, AdminOrder, PageResponse } from "@/lib/admin/types";
 
 const sections = [
@@ -36,6 +37,10 @@ export default function AdminDashboard({ data, orders }: { data: DashboardData |
             <Metric label="Pagamentos aprovados" value={data.pagamentos.aprovados} tone="success" />
             <Metric label="Usuários ativos" value={data.clientes.ativos} tone="purple" />
             <Metric label="Produtos com estoque baixo" value={data.produtos.estoqueBaixo} tone="warning" />
+          </div>
+          <div className="mb-6 grid grid-cols-1 gap-6 xl:grid-cols-2">
+            <DashboardStatusChart title="Pedidos por status" description="Distribuição atual dos pedidos" labels={["Aguardando pagamento", "Pagos", "Processados", "Enviados", "Entregues", "Cancelados"]} values={[data.pedidos.aguardandoPagamento ?? 0, data.pedidos.pagos ?? 0, data.pedidos.processados ?? 0, data.pedidos.enviados ?? 0, data.pedidos.entregues ?? 0, data.pedidos.cancelados ?? 0]} color="#465FFF" />
+            <DashboardStatusChart title="Pagamentos por status" description="Distribuição atual dos pagamentos" labels={["Pendentes", "Aprovados", "Recusados", "Cancelados", "Expirados", "Reembolsados"]} values={[data.pagamentos.pendentes ?? 0, data.pagamentos.aprovados ?? 0, data.pagamentos.recusados ?? 0, data.pagamentos.cancelados ?? 0, data.pagamentos.expirados ?? 0, data.pagamentos.reembolsados ?? 0]} color="#12B76A" />
           </div>
           <div className="mb-6 grid grid-cols-1 gap-6 xl:grid-cols-2">
             {sections.map(([title, key]) => (
