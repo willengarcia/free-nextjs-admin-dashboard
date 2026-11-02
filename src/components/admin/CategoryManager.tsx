@@ -16,6 +16,7 @@ export default function CategoryManager() {
   const show = (notice: Notice) => { setNotice(notice); window.setTimeout(() => setNotice(null), 5000); };
   async function load() { const response = await fetch("/api/commerce/categories/tree"); if (response.ok) setTree(await response.json()); else show({ variant: "error", title: "Categorias indisponíveis", message: await errorMessage(response) }); }
   useEffect(() => { void load(); }, []);
+  useEffect(() => { const reload = () => void load(); window.addEventListener("categories-imported", reload); return () => window.removeEventListener("categories-imported", reload); }, []);
   const rows = useMemo(() => { const flatten = (nodes: AdminCategoryTree[], parentName = "—", level = 0): Row[] => nodes.flatMap((node) => [{ ...node, parentName, level }, ...flatten(node.children ?? [], node.name, level + 1)]); return flatten(tree); }, [tree]);
   const choices = rows.filter((row) => row.id !== editing?.id);
   async function create() { const response = await fetch("/api/commerce/admin/categories", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: form.name, description: form.description, ativo: form.ativo, parentCategoryId: form.parentCategoryId ? Number(form.parentCategoryId) : null }) }); if (!response.ok) return show({ variant: "error", title: "Não foi possível cadastrar", message: await errorMessage(response) }); setForm(empty); show({ variant: "success", title: "Categoria cadastrada", message: "A categoria foi cadastrada com sucesso." }); await load(); }
