@@ -20,6 +20,7 @@ export type AdminProduct = {
   preco: number;
   precoPromocional: number | null;
   quantidadeEstoque: number;
+  quantidadeReservada: number;
   quantidadeDisponivel: number;
   estoqueMinimo: number;
   status: string;
@@ -96,6 +97,10 @@ export type AdminPayment = {
   statusPagamento: string;
   provider: string;
   valor: number;
+  externalId?: string | null;
+  dataPagamento?: string | null;
+  dataExpiracao?: string | null;
+  dataAtualizacao?: string | null;
   dataCriacao: string;
 };
 
